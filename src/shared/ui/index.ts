@@ -1,1 +1,5 @@
 export { default as PageHeader } from './page-header/PageHeader.vue'
+export { default as AppIcon, type IconName } from './icon/AppIcon.vue'
+export { default as SwipeableRow } from './swipeable-row/SwipeableRow.vue'
+export { default as TrendArrow } from './trend-arrow/TrendArrow.vue'
+export { default as EmptyState } from './empty-state/EmptyState.vue'

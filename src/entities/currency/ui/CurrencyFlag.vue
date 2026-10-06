@@ -29,8 +29,19 @@ const badgeText = computed(() => props.currency.code.slice(0, 3).toUpperCase())
   width: var(--flag-size);
   height: var(--flag-size);
   border-radius: 50%;
+  position: relative;
   overflow: hidden;
   background: var(--color-surface-2);
+}
+
+/* Thin ring keeps light flags (Georgia, Japan) visible on light surfaces. */
+.currency-flag::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+  pointer-events: none;
 }
 
 .currency-flag--md {

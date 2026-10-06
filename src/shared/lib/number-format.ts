@@ -5,12 +5,7 @@
 
 export const MAX_FRACTION_DIGITS = 3
 
-const amountFormatter = new Intl.NumberFormat('en-US', {
-  minimumFractionDigits: 0,
-  maximumFractionDigits: MAX_FRACTION_DIGITS,
-})
-
-const rateFormatter = new Intl.NumberFormat('en-US', {
+const fixedFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: MAX_FRACTION_DIGITS,
   maximumFractionDigits: MAX_FRACTION_DIGITS,
 })
@@ -18,19 +13,23 @@ const rateFormatter = new Intl.NumberFormat('en-US', {
 /** Placeholder shown when a value cannot be computed (missing rate, division by zero). */
 export const NOT_AVAILABLE = '—'
 
-/** Formats a converted amount: `1234.5678` → `1,234.568`, `0` → `0`. */
+/**
+ * Formats a converted amount with a fixed 3 decimals so values line up in a
+ * column: `1234.5678` → `1,234.568`, `2` → `2.000`. Zero stays a bare `0`.
+ */
 export function formatAmount(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NOT_AVAILABLE
-  // Avoid "-0" after rounding tiny negatives: round first, then normalize zero.
+  // Round first so tiny negatives become a plain zero instead of "-0.000".
   const factor = 10 ** MAX_FRACTION_DIGITS
   const rounded = Math.round(value * factor) / factor
-  return amountFormatter.format(rounded === 0 ? 0 : rounded)
+  if (rounded === 0) return '0'
+  return fixedFormatter.format(rounded)
 }
 
 /** Formats a unit rate with fixed 3 decimals: `0.0773` → `0.077`. */
 export function formatRate(value: number | null | undefined): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return NOT_AVAILABLE
-  return rateFormatter.format(value)
+  return fixedFormatter.format(value)
 }
 
 /**

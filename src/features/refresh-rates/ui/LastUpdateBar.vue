@@ -6,17 +6,16 @@ import { useRefreshAction } from '../model/use-rates-refresh'
 const rates = useRatesStore()
 const { refresh } = useRefreshAction()
 
-const formatter = new Intl.DateTimeFormat('en-GB', {
+const dateFormatter = new Intl.DateTimeFormat('en-GB', {
   day: '2-digit',
   month: '2-digit',
   year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit',
 })
+const timeFormatter = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' })
 
 const label = computed(() => {
   if (rates.lastUpdated === null) return 'No rates yet'
-  return formatter.format(rates.lastUpdated)
+  return `${dateFormatter.format(rates.lastUpdated)} ${timeFormatter.format(rates.lastUpdated)}`
 })
 
 const isStale = computed(() => {
