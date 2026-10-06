@@ -1,0 +1,9 @@
+node_modules
+dist
+dev-dist
+public/icons
+public/flags
+.DS_Store
+*.local
+.idea
+.vscode

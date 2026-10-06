@@ -1,0 +1,8 @@
+node_modules
+dist
+dev-dist
+public/icons
+public/flags
+.git
+.github
+*.md

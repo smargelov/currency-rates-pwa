@@ -1,0 +1,75 @@
+/* Design tokens. Dark is the default (matches the reference app);
+   light follows the OS preference. */
+:root {
+  color-scheme: dark;
+
+  --color-bg: #1c1d24;
+  --color-surface: #2a2b36;
+  --color-surface-2: #353646;
+  --color-surface-active: #30313f;
+  --color-border: #3d3e4d;
+  --color-border-active: #8b93ff;
+
+  --color-text: #e8e9f1;
+  --color-text-secondary: #9a9eb3;
+  --color-text-muted: #6f7389;
+
+  --color-accent: #4b5bff;
+  --color-accent-hover: #5c6bff;
+  --color-on-accent: #ffffff;
+
+  --color-up: #39c27a;
+  --color-down: #ef5a5a;
+  --color-warning: #f0b35a;
+  --color-metal: #e0b454;
+
+  --color-key: #2f303d;
+  --color-key-hover: #3a3b4a;
+  --color-key-text: #e8e9f1;
+  --color-key-muted: #9a9eb3;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+
+  --font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --shadow-sheet: 0 -8px 32px rgb(0 0 0 / 0.35);
+  --tap-target: 44px;
+  --nav-height: 60px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+
+    --color-bg: #f3f4f8;
+    --color-surface: #ffffff;
+    --color-surface-2: #e9eaf1;
+    --color-surface-active: #f7f8ff;
+    --color-border: #dcdee8;
+    --color-border-active: #4b5bff;
+
+    --color-text: #1b1c24;
+    --color-text-secondary: #5c6078;
+    --color-text-muted: #8a8ea3;
+
+    --color-key: #ffffff;
+    --color-key-hover: #eef0f8;
+    --color-key-text: #1b1c24;
+    --color-key-muted: #5c6078;
+
+    --shadow-sheet: 0 -8px 32px rgb(20 24 60 / 0.12);
+  }
+}
