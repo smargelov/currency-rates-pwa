@@ -11,6 +11,7 @@ import {
   type CurrencyType,
 } from '@/entities/currency'
 import { useSettingsStore } from '@/entities/settings'
+import { useDebounced } from '@/shared/lib/use-debounced'
 import { AppIcon, EmptyState, PageHeader } from '@/shared/ui'
 
 type Target = 'main' | 'cm'
@@ -39,8 +40,25 @@ function initialTab(): CurrencyType {
 }
 const activeTab = ref<CurrencyType>(initialTab())
 
+const SEARCH_DEBOUNCE_MS = 300
+
 const query = ref('')
+// Results follow the input with a short delay so each keystroke doesn't
+// re-filter the whole catalog; clearing applies immediately.
+const { debounced: searchTerm, flush: flushSearch } = useDebounced(query, SEARCH_DEBOUNCE_MS)
 const searchInput = ref<HTMLInputElement | null>(null)
+
+// Read the value straight from the event: Vue's v-model waits for the IME
+// `compositionend`, which on Android keyboards only fires on "Done".
+function onSearchInput(event: Event) {
+  query.value = (event.target as HTMLInputElement).value
+}
+
+function clearSearch() {
+  query.value = ''
+  flushSearch()
+  searchInput.value?.focus()
+}
 
 const selectedCodes = computed(() => settings[listKey.value])
 
@@ -50,7 +68,7 @@ const selectedList = computed<CurrencyMeta[]>(() => {
   return codes.map(getCurrency).filter((meta): meta is CurrencyMeta => meta !== undefined)
 })
 
-const results = computed(() => searchCurrencies(query.value, listByType(activeTab.value)))
+const results = computed(() => searchCurrencies(searchTerm.value, listByType(activeTab.value)))
 
 /** Alphabetical sections by first letter of the code, like the reference app. */
 const sections = computed(() => {
@@ -64,7 +82,7 @@ const sections = computed(() => {
   return [...groups.entries()].map(([letter, items]) => ({ letter, items }))
 })
 
-const showSelected = computed(() => query.value.trim() === '' && selectedList.value.length > 0)
+const showSelected = computed(() => searchTerm.value.trim() === '' && selectedList.value.length > 0)
 
 function isBase(code: string) {
   return target.value === 'main' && code === settings.baseCode
@@ -98,7 +116,7 @@ onMounted(() => {
       <AppIcon name="search" :size="22" class="picker__search-icon" />
       <input
         ref="searchInput"
-        v-model="query"
+        :value="query"
         type="search"
         class="picker__search-input"
         placeholder="Search"
@@ -108,13 +126,15 @@ onMounted(() => {
         spellcheck="false"
         enterkeyhint="done"
         aria-label="Search currencies"
+        @input="onSearchInput"
+        @keydown.enter="flushSearch"
       />
       <button
         v-if="query"
         type="button"
         class="picker__search-clear"
         aria-label="Clear search"
-        @click="query = ''"
+        @click="clearSearch"
       >
         ×
       </button>
@@ -191,7 +211,7 @@ onMounted(() => {
         v-if="sections.length === 0"
         icon="search"
         title="Nothing found"
-        :description="`No ${activeTab === 'fiat' ? 'currencies' : activeTab === 'crypto' ? 'cryptocurrencies' : 'metals'} match “${query}”.`"
+        :description="`No ${activeTab === 'fiat' ? 'currencies' : activeTab === 'crypto' ? 'cryptocurrencies' : 'metals'} match “${searchTerm}”.`"
       />
     </div>
 
