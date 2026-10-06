@@ -17,6 +17,11 @@ export type IconName =
   | 'eye-off'
   | 'alert'
   | 'external'
+  | 'copy'
+  | 'download'
+  | 'share-ios'
+  | 'more-vertical'
+  | 'heart'
 
 withDefaults(
   defineProps<{
@@ -106,6 +111,28 @@ withDefaults(
     <template v-else-if="name === 'external'">
       <path d="M14 4h6v6M20 4l-9 9" />
       <path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />
+    </template>
+    <template v-else-if="name === 'copy'">
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15V5a1 1 0 0 1 1-1h10" />
+    </template>
+    <template v-else-if="name === 'download'">
+      <path d="M12 4v11M7 10l5 5 5-5" />
+      <path d="M4 19h16" />
+    </template>
+    <template v-else-if="name === 'share-ios'">
+      <path d="M12 3v12M8 7l4-4 4 4" />
+      <path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2" />
+    </template>
+    <template v-else-if="name === 'more-vertical'">
+      <circle cx="12" cy="5" r="1.4" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.4" fill="currentColor" />
+      <circle cx="12" cy="19" r="1.4" fill="currentColor" />
+    </template>
+    <template v-else-if="name === 'heart'">
+      <path
+        d="M12 20.5s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 8a4.3 4.3 0 0 1 7.5 2.5c0 5.4-7.5 10-7.5 10z"
+      />
     </template>
   </svg>
 </template>

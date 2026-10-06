@@ -3,6 +3,8 @@ dist
 dev-dist
 public/icons
 public/flags
+# Local stand-in for the file the container generates from DONATE_* env vars.
+public/donations.json
 .DS_Store
 *.local
 .idea

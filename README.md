@@ -44,6 +44,29 @@ src/
 pushes it to GHCR and triggers a Dokploy webhook. See `.github/workflows/deploy.yml`.
 Requires the `DOKPLOY_WEBHOOK_URL` repository secret.
 
+### Donations (optional)
+
+Settings → "Support the project" lists wallet addresses / IBANs. They are not
+in the repository or the image: on container start `docker/40-donations.sh`
+writes `/donations.json` from environment variables set on the deployment
+(Dokploy → Environment). A method whose variable is missing or empty is not
+shown; with none set (or `DONATE_ENABLED=false`) the whole section disappears.
+The variable names match the KoC bot deployment, so the same block can be pasted.
+
+| Variable                   | Shown as               |
+| -------------------------- | ---------------------- |
+| `DONATE_TON_ADDRESS`       | TON · Toncoin          |
+| `DONATE_USDT_TRC20`        | USDT · TRC20           |
+| `DONATE_USDT_ERC20`        | USDT · ERC20           |
+| `DONATE_USDC_ERC20`        | USDC · ERC20           |
+| `DONATE_ETH`               | ETH · Ethereum         |
+| `DONATE_BTC`               | BTC · Bitcoin          |
+| `DONATE_BANK_GEORGIA_IBAN` | Bank of Georgia · IBAN |
+| `DONATE_TBC_IBAN`          | TBC Bank · IBAN        |
+
+For local development drop a `public/donations.json` (git-ignored) with the
+same ids as keys, e.g. `{"btc":"bc1q…"}`.
+
 ## License
 
 MIT

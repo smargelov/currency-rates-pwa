@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRatesStore, type ProviderId } from '@/entities/rates'
 import { useSettingsStore } from '@/entities/settings'
+import { DonationList, useDonations } from '@/features/donations'
+import { InstallGuide } from '@/features/install-app'
 import { AppIcon, PageHeader } from '@/shared/ui'
 
 const settings = useSettingsStore()
 const rates = useRatesStore()
+// Donation methods come from the deployment (DONATE_* env → /donations.json);
+// the whole section is hidden when none are configured.
+const { methods: donationMethods, ensureLoaded: loadDonations } = useDonations()
+onMounted(() => void loadDonations())
 
 const APP_VERSION = __APP_VERSION__
 const REPO_URL = 'https://github.com/smargelov/currency-rates-pwa'
@@ -136,6 +142,25 @@ function resetApp() {
             The key is stored only in this browser and sent only to openexchangerates.org.
             <a :href="OXR_URL" target="_blank" rel="noopener">Get a free App ID</a>
           </p>
+        </div>
+      </section>
+
+      <section class="settings__section">
+        <h2 class="settings__title">Install on your home screen</h2>
+        <div class="settings__card">
+          <InstallGuide />
+        </div>
+      </section>
+
+      <section v-if="donationMethods.length > 0" class="settings__section">
+        <h2 class="settings__title">Support the project</h2>
+        <div class="settings__card">
+          <p class="settings__lead">
+            <AppIcon name="heart" :size="16" />
+            Currency Rates is free, open source and has no ads. If it saves you time, a donation of
+            any size is appreciated. Tap a method to copy the address.
+          </p>
+          <DonationList />
         </div>
       </section>
 
@@ -341,6 +366,23 @@ function resetApp() {
   margin: 0;
   font-size: 13px;
   color: var(--color-text-secondary);
+}
+
+.settings__lead {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--color-text-secondary);
+}
+
+.settings__lead .app-icon {
+  margin-top: 1px;
+  color: var(--color-down);
 }
 
 .settings__hint a {

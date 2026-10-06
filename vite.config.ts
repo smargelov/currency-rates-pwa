@@ -52,6 +52,12 @@ export default defineConfig({
               expiration: { maxEntries: 200, maxAgeSeconds: 365 * 24 * 60 * 60 },
             },
           },
+          {
+            // Generated per deployment from env vars; keep the last copy for offline.
+            urlPattern: /\/donations\.json$/,
+            handler: 'NetworkFirst',
+            options: { cacheName: 'donations', networkTimeoutSeconds: 3 },
+          },
         ],
       },
     }),
