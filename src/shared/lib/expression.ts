@@ -207,21 +207,29 @@ export function backspace(expression: string): string {
   return expression.slice(0, -1)
 }
 
-/** Collapses the expression to its numeric result (the `=` key). */
-export function collapse(expression: string): string {
+/**
+ * Collapses the expression to its numeric result (the `=` key), rendered with
+ * at most `fractionDigits` decimals.
+ */
+export function collapse(expression: string, fractionDigits = DEFAULT_FRACTION_DIGITS): string {
   const value = evaluatePartial(expression)
   if (value === null) return ''
-  return numberToExpression(value)
+  return numberToExpression(value, fractionDigits)
 }
+
+const DEFAULT_FRACTION_DIGITS = 6
 
 /**
  * Renders a number as an expression literal with a bounded number of
  * fraction digits and no exponent notation.
  */
-export function numberToExpression(value: number): string {
+export function numberToExpression(
+  value: number,
+  fractionDigits = DEFAULT_FRACTION_DIGITS,
+): string {
   if (!Number.isFinite(value)) return ''
   const fixed = Math.abs(value)
-    .toFixed(6)
+    .toFixed(fractionDigits)
     .replace(/\.?0+$/, '')
   if (fixed === '0' || fixed === '') return '0'
   return value < 0 ? `-${fixed}` : fixed

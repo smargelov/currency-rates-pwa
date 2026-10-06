@@ -8,10 +8,10 @@ import {
 
 describe('formatAmount', () => {
   it('uses thousands separators and a fixed 3 fraction digits', () => {
-    expect(formatAmount(1234.5678)).toBe('1,234.568')
-    expect(formatAmount(1000000)).toBe('1,000,000.000')
+    expect(formatAmount(1234.5678)).toBe('1,234.57')
+    expect(formatAmount(1000000)).toBe('1,000,000.00')
     expect(formatAmount(0)).toBe('0')
-    expect(formatAmount(2.5)).toBe('2.500')
+    expect(formatAmount(2.5)).toBe('2.50')
   })
 
   it('returns the placeholder for missing or non-finite values', () => {
@@ -24,7 +24,8 @@ describe('formatAmount', () => {
   it('never renders negative zero', () => {
     expect(formatAmount(-0)).toBe('0')
     expect(formatAmount(-0.0001)).toBe('0')
-    expect(formatAmount(-0.5)).toBe('-0.500')
+    expect(formatAmount(0.004)).toBe('0')
+    expect(formatAmount(-0.5)).toBe('-0.50')
   })
 })
 

@@ -136,6 +136,12 @@ describe('collapse / numberToExpression', () => {
     expect(numberToExpression(1e-9)).toBe('0')
     expect(numberToExpression(-0)).toBe('0')
   })
+
+  it('honours a custom number of fraction digits', () => {
+    expect(numberToExpression(15526.534259, 2)).toBe('15526.53')
+    expect(numberToExpression(2.999, 2)).toBe('3')
+    expect(collapse('10/3', 2)).toBe('3.33')
+  })
 })
 
 describe('toDisplayOperators', () => {

@@ -12,6 +12,7 @@ import {
   isOperator,
   numberToExpression,
 } from '@/shared/lib/expression'
+import { AMOUNT_FRACTION_DIGITS, roundAmount } from '@/shared/lib/number-format'
 
 export type KeypadKey =
   | '0'
@@ -59,13 +60,17 @@ export const useConverterStore = defineStore('converter', () => {
   /** Numeric value of the expression typed so far (null when invalid). */
   const activeValue = computed(() => evaluatePartial(expression.value))
 
-  /** Focuses a row, seeding the expression with the value currently shown in it. */
+  /**
+   * Focuses a row, seeding the expression with the value currently shown in
+   * it — rounded to the 2 decimals the row displays, so the user keeps editing
+   * exactly what they saw.
+   */
   function focus(code: CurrencyCode, shownAmount: number | null): void {
     focused.value = true
     if (code === activeCode.value) return
     activeCode.value = code
-    expression.value =
-      shownAmount === null || shownAmount === 0 ? '' : numberToExpression(shownAmount)
+    const seed = shownAmount === null ? 0 : roundAmount(shownAmount)
+    expression.value = seed === 0 ? '' : numberToExpression(seed, AMOUNT_FRACTION_DIGITS)
     fresh.value = expression.value !== ''
   }
 
@@ -86,7 +91,7 @@ export const useConverterStore = defineStore('converter', () => {
         fresh.value = false
         return
       case '=':
-        expression.value = collapse(expression.value)
+        expression.value = collapse(expression.value, AMOUNT_FRACTION_DIGITS)
         if (expression.value === '0') expression.value = ''
         fresh.value = expression.value !== ''
         return
