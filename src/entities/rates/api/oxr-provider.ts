@@ -6,7 +6,8 @@ import { ProviderError, type RatesProvider } from './provider'
  * Open Exchange Rates with a user-supplied app id. Free tier: hourly updates,
  * USD base only — which is exactly what the app needs.
  */
-export const OXR_LATEST_URL = 'https://openexchangerates.org/api/latest.json'
+export const OXR_BASE_URL = 'https://openexchangerates.org/api'
+export const OXR_LATEST_URL = `${OXR_BASE_URL}/latest.json`
 
 interface OxrResponse {
   timestamp: number
@@ -16,7 +17,8 @@ interface OxrResponse {
 
 export interface OxrProviderOptions {
   appId: string
-  url?: string
+  /** API root without a trailing slash (tests). */
+  baseUrl?: string
   fetchOptions?: Omit<FetchJsonOptions, 'signal'>
   now?: () => number
 }
@@ -44,31 +46,35 @@ export function normalizeOxrResponse(payload: unknown, fetchedAt: number): Rates
 
 export function createOxrProvider(options: OxrProviderOptions): RatesProvider {
   const now = options.now ?? Date.now
-  const base = options.url ?? OXR_LATEST_URL
+  const base = options.baseUrl ?? OXR_BASE_URL
+
+  async function fetchEndpoint(path: string, signal?: AbortSignal): Promise<RatesSnapshot> {
+    const url = `${base}/${path}?app_id=${encodeURIComponent(options.appId)}`
+    try {
+      const payload = await fetchJson<unknown>(url, { ...options.fetchOptions, signal })
+      return normalizeOxrResponse(payload, now())
+    } catch (error) {
+      if (error instanceof ProviderError) throw error
+      if (error instanceof HttpError) {
+        if (error.status === 401 || error.status === 403) {
+          throw new ProviderError('oxr', 'unauthorized', 'API key rejected')
+        }
+        if (error.status === 429) {
+          throw new ProviderError('oxr', 'rate-limited', 'Monthly request limit reached')
+        }
+      }
+      throw new ProviderError(
+        'oxr',
+        'network',
+        error instanceof Error ? error.message : 'Request failed',
+      )
+    }
+  }
 
   return {
     id: 'oxr',
-    async fetchLatest(signal) {
-      const url = `${base}?app_id=${encodeURIComponent(options.appId)}`
-      try {
-        const payload = await fetchJson<unknown>(url, { ...options.fetchOptions, signal })
-        return normalizeOxrResponse(payload, now())
-      } catch (error) {
-        if (error instanceof ProviderError) throw error
-        if (error instanceof HttpError) {
-          if (error.status === 401 || error.status === 403) {
-            throw new ProviderError('oxr', 'unauthorized', 'API key rejected')
-          }
-          if (error.status === 429) {
-            throw new ProviderError('oxr', 'rate-limited', 'Monthly request limit reached')
-          }
-        }
-        throw new ProviderError(
-          'oxr',
-          'network',
-          error instanceof Error ? error.message : 'Request failed',
-        )
-      }
-    },
+    fetchLatest: (signal) => fetchEndpoint('latest.json', signal),
+    // Historical data is included in the free plan.
+    fetchForDate: (date, signal) => fetchEndpoint(`historical/${date}.json`, signal),
   }
 }

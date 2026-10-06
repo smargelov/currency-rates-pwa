@@ -12,13 +12,25 @@ export const FREE_PROVIDER_URLS = [
   'https://latest.currency-api.pages.dev/v1/currencies/usd.json',
 ] as const
 
+/**
+ * Builds the primary and fallback URLs for a version tag: `latest` or a
+ * YYYY-MM-DD publication date (the API keeps every daily snapshot).
+ */
+export function freeProviderUrls(version: string): readonly string[] {
+  return [
+    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${version}/v1/currencies/usd.min.json`,
+    `https://${version}.currency-api.pages.dev/v1/currencies/usd.json`,
+  ]
+}
+
 interface FreeApiResponse {
   date: string
   usd: Record<string, number>
 }
 
 export interface FreeProviderOptions {
-  urls?: readonly string[]
+  /** Overrides URL construction (tests). Receives 'latest' or a YYYY-MM-DD date. */
+  urls?: (version: string) => readonly string[]
   fetchOptions?: Omit<FetchJsonOptions, 'signal'>
   now?: () => number
 }
@@ -38,28 +50,31 @@ export function normalizeFreeResponse(payload: unknown, fetchedAt: number): Rate
 }
 
 export function createFreeProvider(options: FreeProviderOptions = {}): RatesProvider {
-  const urls = options.urls ?? FREE_PROVIDER_URLS
+  const urlsFor = options.urls ?? freeProviderUrls
   const now = options.now ?? Date.now
+
+  async function fetchVersion(version: string, signal?: AbortSignal): Promise<RatesSnapshot> {
+    let lastError: unknown = null
+    for (const url of urlsFor(version)) {
+      if (signal?.aborted) break
+      try {
+        const payload = await fetchJson<unknown>(url, { ...options.fetchOptions, signal })
+        return normalizeFreeResponse(payload, now())
+      } catch (error) {
+        if (error instanceof ProviderError) throw error
+        lastError = error
+      }
+    }
+    throw new ProviderError(
+      'free',
+      'network',
+      lastError instanceof Error ? lastError.message : 'All rate sources failed',
+    )
+  }
 
   return {
     id: 'free',
-    async fetchLatest(signal) {
-      let lastError: unknown = null
-      for (const url of urls) {
-        if (signal?.aborted) break
-        try {
-          const payload = await fetchJson<unknown>(url, { ...options.fetchOptions, signal })
-          return normalizeFreeResponse(payload, now())
-        } catch (error) {
-          if (error instanceof ProviderError) throw error
-          lastError = error
-        }
-      }
-      throw new ProviderError(
-        'free',
-        'network',
-        lastError instanceof Error ? lastError.message : 'All rate sources failed',
-      )
-    },
+    fetchLatest: (signal) => fetchVersion('latest', signal),
+    fetchForDate: (date, signal) => fetchVersion(date, signal),
   }
 }

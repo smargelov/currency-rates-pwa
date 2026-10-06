@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  dayBefore,
   parseSnapshot,
+  previousDateFor,
   rotateSnapshots,
   shouldRefresh,
   STALE_AFTER_MS,
@@ -74,6 +76,23 @@ describe('toUtcDate', () => {
   it('formats in UTC regardless of local zone', () => {
     expect(toUtcDate(Date.UTC(2026, 9, 6, 23, 59))).toBe('2026-10-06')
     expect(toUtcDate(Date.UTC(2026, 9, 7, 0, 0))).toBe('2026-10-07')
+  })
+})
+
+describe('dayBefore / previousDateFor', () => {
+  it('steps back one calendar day across month and year boundaries', () => {
+    expect(dayBefore('2026-10-06')).toBe('2026-10-05')
+    expect(dayBefore('2026-10-01')).toBe('2026-09-30')
+    expect(dayBefore('2026-01-01')).toBe('2025-12-31')
+    expect(dayBefore('2028-03-01')).toBe('2028-02-29')
+  })
+
+  it('asks for yesterday only when previous does not already hold it', () => {
+    const current = snapshot('2026-10-06')
+    expect(previousDateFor(current, null)).toBe('2026-10-05')
+    expect(previousDateFor(current, snapshot('2026-10-03'))).toBe('2026-10-05')
+    expect(previousDateFor(current, snapshot('2026-10-05'))).toBeNull()
+    expect(previousDateFor(null, null)).toBeNull()
   })
 })
 

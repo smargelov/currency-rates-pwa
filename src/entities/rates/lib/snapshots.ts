@@ -7,8 +7,11 @@ export interface SnapshotPair {
 
 /**
  * Rotates snapshots after a successful fetch. `previous` only ever holds a
- * snapshot with a different publication date than `current`, so trend arrows
- * compare two distinct days rather than two fetches of the same day.
+ * snapshot with a different publication date than `current`. This is the
+ * cheap fallback for trend arrows; the store then tries to replace `previous`
+ * with the snapshot published exactly one day before `current` (see
+ * `previousDateFor`), so arrows compare today with yesterday even if the app
+ * was not opened yesterday.
  */
 export function rotateSnapshots(pair: SnapshotPair, incoming: RatesSnapshot): SnapshotPair {
   const { current, previous } = pair
@@ -54,6 +57,25 @@ export function shouldRefresh({
 /** Formats an epoch timestamp as YYYY-MM-DD in UTC. */
 export function toUtcDate(epochMs: number): string {
   return new Date(epochMs).toISOString().slice(0, 10)
+}
+
+/** The calendar day before a YYYY-MM-DD date, computed in UTC. */
+export function dayBefore(date: string): string {
+  const [year, month, day] = date.split('-').map(Number) as [number, number, number]
+  return toUtcDate(Date.UTC(year, month - 1, day - 1))
+}
+
+/**
+ * The publication date whose snapshot should sit in `previous` for a given
+ * `current`, or null when `previous` already holds it.
+ */
+export function previousDateFor(
+  current: RatesSnapshot | null,
+  previous: RatesSnapshot | null,
+): string | null {
+  if (!current) return null
+  const wanted = dayBefore(current.date)
+  return previous?.date === wanted ? null : wanted
 }
 
 /** Runtime validation for snapshots loaded from storage. */

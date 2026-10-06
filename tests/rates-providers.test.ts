@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createFreeProvider, normalizeFreeResponse } from '@/entities/rates/api/free-provider'
+import {
+  createFreeProvider,
+  freeProviderUrls,
+  normalizeFreeResponse,
+} from '@/entities/rates/api/free-provider'
 import { createOxrProvider, normalizeOxrResponse } from '@/entities/rates/api/oxr-provider'
 import { ProviderError } from '@/entities/rates/api/provider'
 
@@ -37,7 +41,7 @@ describe('createFreeProvider', () => {
   it('uses the primary URL when it succeeds', async () => {
     const fetchImpl = vi.fn<typeof fetch>(async () => jsonResponse(payload))
     const provider = createFreeProvider({
-      urls: ['https://a/usd.json', 'https://b/usd.json'],
+      urls: () => ['https://a/usd.json', 'https://b/usd.json'],
       fetchOptions: { fetchImpl },
       now: () => 42,
     })
@@ -54,7 +58,7 @@ describe('createFreeProvider', () => {
       .mockResolvedValueOnce(jsonResponse({}, 503))
       .mockResolvedValueOnce(jsonResponse(payload))
     const provider = createFreeProvider({
-      urls: ['https://a/usd.json', 'https://b/usd.json'],
+      urls: () => ['https://a/usd.json', 'https://b/usd.json'],
       fetchOptions: { fetchImpl },
     })
     const snapshot = await provider.fetchLatest()
@@ -67,7 +71,7 @@ describe('createFreeProvider', () => {
       throw new TypeError('Failed to fetch')
     })
     const provider = createFreeProvider({
-      urls: ['https://a', 'https://b'],
+      urls: () => ['https://a', 'https://b'],
       fetchOptions: { fetchImpl },
     })
     await expect(provider.fetchLatest()).rejects.toMatchObject({
@@ -79,11 +83,34 @@ describe('createFreeProvider', () => {
   it('does not fall back on an invalid response shape', async () => {
     const fetchImpl = vi.fn(async () => jsonResponse({ nope: true }))
     const provider = createFreeProvider({
-      urls: ['https://a', 'https://b'],
+      urls: () => ['https://a', 'https://b'],
       fetchOptions: { fetchImpl },
     })
     await expect(provider.fetchLatest()).rejects.toMatchObject({ kind: 'invalid-response' })
     expect(fetchImpl).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('freeProviderUrls', () => {
+  it('builds latest and dated URLs with a CDN fallback', () => {
+    expect(freeProviderUrls('latest')).toEqual([
+      'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json',
+      'https://latest.currency-api.pages.dev/v1/currencies/usd.json',
+    ])
+    expect(freeProviderUrls('2026-10-05')[0]).toContain('currency-api@2026-10-05/')
+    expect(freeProviderUrls('2026-10-05')[1]).toBe(
+      'https://2026-10-05.currency-api.pages.dev/v1/currencies/usd.json',
+    )
+  })
+
+  it('fetchForDate requests the dated version', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async () =>
+      jsonResponse({ date: '2026-10-05', usd: { eur: 0.88 } }),
+    )
+    const provider = createFreeProvider({ fetchOptions: { fetchImpl } })
+    const snapshot = await provider.fetchForDate('2026-10-05')
+    expect(snapshot.date).toBe('2026-10-05')
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toContain('@2026-10-05/')
   })
 })
 
@@ -117,5 +144,19 @@ describe('createOxrProvider', () => {
     const fetchImpl = vi.fn(async () => jsonResponse({}, 429))
     const provider = createOxrProvider({ appId: 'k', fetchOptions: { fetchImpl } })
     await expect(provider.fetchLatest()).rejects.toMatchObject({ kind: 'rate-limited' })
+  })
+
+  it('uses the historical endpoint for a date', async () => {
+    const fetchImpl = vi.fn<typeof fetch>(async () =>
+      jsonResponse({
+        timestamp: Date.UTC(2026, 9, 5, 23) / 1000,
+        base: 'USD',
+        rates: { EUR: 0.9 },
+      }),
+    )
+    const provider = createOxrProvider({ appId: 'k', fetchOptions: { fetchImpl } })
+    const snapshot = await provider.fetchForDate('2026-10-05')
+    expect(snapshot.date).toBe('2026-10-05')
+    expect(String(fetchImpl.mock.calls[0]?.[0])).toContain('/historical/2026-10-05.json?app_id=k')
   })
 })
