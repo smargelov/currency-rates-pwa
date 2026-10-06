@@ -65,8 +65,10 @@ function onPointerCancel(event: PointerEvent) {
     </button>
 
     <div class="sheet__keypad" :inert="!converter.focused">
-      <div class="sheet__keypad-inner">
-        <CalculatorKeypad />
+      <div class="sheet__keypad-clip">
+        <div class="sheet__keypad-slide">
+          <CalculatorKeypad />
+        </div>
       </div>
     </div>
 
@@ -112,24 +114,38 @@ function onPointerCancel(event: PointerEvent) {
   background: var(--color-text-muted);
 }
 
-/* Animated collapse via the 0fr/1fr grid trick: no fixed heights needed. */
+/*
+ * Collapse = the keys slide down out of view while the space they occupied
+ * closes (0fr/1fr grid trick, no fixed heights). The clip hides the part that
+ * has already left.
+ */
 .sheet__keypad {
   display: grid;
   grid-template-rows: 1fr;
-  transition: grid-template-rows 0.25s ease;
+  transition: grid-template-rows 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sheet--collapsed .sheet__keypad {
   grid-template-rows: 0fr;
 }
 
-.sheet__keypad-inner {
+.sheet__keypad-clip {
   min-height: 0;
   overflow: hidden;
 }
 
+.sheet__keypad-slide {
+  transform: translateY(0);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sheet--collapsed .sheet__keypad-slide {
+  transform: translateY(100%);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .sheet__keypad {
+  .sheet__keypad,
+  .sheet__keypad-slide {
     transition: none;
   }
 }

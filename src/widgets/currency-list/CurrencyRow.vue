@@ -54,9 +54,18 @@ defineProps<{ row: ConverterRow }>()
     background-color 0.15s ease;
 }
 
+/* The base row sits first and gets an accent tint so it reads as the anchor. */
+.currency-row--base {
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface));
+}
+
 .currency-row--active {
   border-color: var(--color-border-active);
   background: var(--color-surface-active);
+}
+
+.currency-row--base.currency-row--active {
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-surface));
 }
 
 .currency-row__info {

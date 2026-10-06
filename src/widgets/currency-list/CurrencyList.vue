@@ -61,9 +61,12 @@ const isEmpty = computed(() => rows.value.length === 0)
 
 <template>
   <div class="currency-list">
-    <div v-if="baseRow" class="currency-list__base">
-      <CurrencyRow :row="baseRow" @click="select(baseRow)" @keydown.enter="select(baseRow)" />
-    </div>
+    <CurrencyRow
+      v-if="baseRow"
+      :row="baseRow"
+      @click="select(baseRow)"
+      @keydown.enter="select(baseRow)"
+    />
 
     <TransitionGroup name="list" tag="ul" class="currency-list__items">
       <li v-for="(row, index) in rows" :key="row.code">
@@ -88,15 +91,6 @@ const isEmpty = computed(() => rows.value.length === 0)
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-}
-
-.currency-list__base {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  padding: var(--space-2) 0 var(--space-1);
-  margin-top: calc(-1 * var(--space-2));
-  background: var(--color-bg);
 }
 
 .currency-list__items {

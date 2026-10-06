@@ -42,8 +42,8 @@ const hint = computed(() => {
     >
       <svg
         viewBox="0 0 24 24"
-        width="20"
-        height="20"
+        width="16"
+        height="16"
         fill="none"
         stroke="currentColor"
         stroke-width="2"
@@ -68,12 +68,13 @@ const hint = computed(() => {
 .last-update {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
+  gap: var(--space-2);
+  min-height: 32px;
+  padding: 0 var(--space-2);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .last-update--warn {
@@ -82,8 +83,8 @@ const hint = computed(() => {
 
 .last-update__refresh {
   display: inline-flex;
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
@@ -97,7 +98,7 @@ const hint = computed(() => {
 .last-update__text {
   flex: 1;
   text-align: center;
-  padding-right: 36px;
+  padding-right: 28px;
 }
 
 .last-update__text strong {
