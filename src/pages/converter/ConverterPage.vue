@@ -2,8 +2,8 @@
 import { computed } from 'vue'
 import { useRatesStore } from '@/entities/rates'
 import { useHardwareKeyboard } from '@/features/convert-amount'
-import { LastUpdateBar, useRefreshAction } from '@/features/refresh-rates'
-import CalculatorKeypad from '@/widgets/calculator-keypad/CalculatorKeypad.vue'
+import { useRefreshAction } from '@/features/refresh-rates'
+import KeypadSheet from '@/widgets/calculator-keypad/KeypadSheet.vue'
 import CurrencyList from '@/widgets/currency-list/CurrencyList.vue'
 import { AppIcon } from '@/shared/ui'
 
@@ -29,11 +29,7 @@ const showNoRates = computed(() => !rates.hasRates && rates.status !== 'loading'
       <CurrencyList />
     </div>
 
-    <div class="converter__sheet">
-      <div class="converter__grip" aria-hidden="true" />
-      <CalculatorKeypad />
-      <LastUpdateBar />
-    </div>
+    <KeypadSheet />
   </main>
 </template>
 
@@ -86,23 +82,5 @@ const showNoRates = computed(() => !rates.hasRates && rates.status !== 'loading'
   background: var(--color-accent);
   color: var(--color-on-accent);
   font-weight: 600;
-}
-
-.converter__sheet {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-4) var(--space-3);
-  background: var(--color-bg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: var(--shadow-sheet);
-}
-
-.converter__grip {
-  width: 44px;
-  height: 4px;
-  margin: 0 auto;
-  border-radius: 2px;
-  background: var(--color-border);
 }
 </style>

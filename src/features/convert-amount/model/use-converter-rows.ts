@@ -42,18 +42,21 @@ export function useConverterRows() {
   function buildRow(code: CurrencyCode): ConverterRow | null {
     const meta = getCurrency(code)
     if (!meta) return null
-    const isActive = code === converter.activeCode
+    const isSource = code === converter.activeCode
+    const isActive = isSource && converter.focused
     const snapshot = rates.current
-    const amount = isActive
+    const amount = isSource
       ? converter.activeValue
       : convert(snapshot, converter.activeValue, converter.activeCode, code)
 
+    // While editing, the source row shows the raw expression; once the keypad
+    // is dismissed it shows the evaluated amount like every other row.
     const display = isActive
       ? formatExpression(toDisplayOperators(converter.expression))
       : formatAmount(amount)
 
     const unit = crossRate(snapshot, code, converter.activeCode)
-    const rateLabel = isActive
+    const rateLabel = isSource
       ? null
       : `1 ${displayCode(code)} = ${formatRate(unit)} ${displayCode(converter.activeCode)}`
 

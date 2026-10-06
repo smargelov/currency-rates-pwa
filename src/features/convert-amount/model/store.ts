@@ -44,6 +44,12 @@ export const useConverterStore = defineStore('converter', () => {
   const activeCode = ref<CurrencyCode>(settings.baseCode)
   const expression = ref('')
   /**
+   * Whether a row is being edited. When false no row is highlighted and the
+   * keypad is collapsed; `activeCode` still names the row whose value drives
+   * the conversions, so the list keeps showing meaningful amounts.
+   */
+  const focused = ref(true)
+  /**
    * After focusing a row that already shows a converted amount, the first
    * digit typed replaces that amount instead of appending to it. Operators
    * keep the amount so "amount + 20" keeps working.
@@ -55,6 +61,7 @@ export const useConverterStore = defineStore('converter', () => {
 
   /** Focuses a row, seeding the expression with the value currently shown in it. */
   function focus(code: CurrencyCode, shownAmount: number | null): void {
+    focused.value = true
     if (code === activeCode.value) return
     activeCode.value = code
     expression.value =
@@ -62,7 +69,13 @@ export const useConverterStore = defineStore('converter', () => {
     fresh.value = expression.value !== ''
   }
 
+  /** Leaves edit mode (keypad collapses); the typed value stays in place. */
+  function blur(): void {
+    focused.value = false
+  }
+
   function press(key: KeypadKey): void {
+    focused.value = true
     switch (key) {
       case 'clear':
         expression.value = ''
@@ -97,6 +110,7 @@ export const useConverterStore = defineStore('converter', () => {
     activeCode.value = settings.baseCode
     expression.value = ''
     fresh.value = false
+    focused.value = true
   }
 
   /** Called when a row is removed or the base changes under the cursor. */
@@ -104,5 +118,16 @@ export const useConverterStore = defineStore('converter', () => {
     if (!codes.includes(activeCode.value)) reset()
   }
 
-  return { activeCode, expression, fresh, activeValue, focus, press, reset, ensureActiveExists }
+  return {
+    activeCode,
+    expression,
+    fresh,
+    focused,
+    activeValue,
+    focus,
+    blur,
+    press,
+    reset,
+    ensureActiveExists,
+  }
 })
