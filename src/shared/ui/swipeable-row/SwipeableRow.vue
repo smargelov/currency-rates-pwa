@@ -66,6 +66,10 @@ function onPointerMove(event: PointerEvent) {
       dragging.value = false
       return
     }
+    // Keep receiving moves when the finger/cursor leaves the row. Touch pointers
+    // are implicitly captured by the inner target, so this re-targets the capture
+    // and fires `lostpointercapture` on that inner element — which is why that
+    // event must not be treated as a cancelled gesture below.
     ;(event.currentTarget as HTMLElement).setPointerCapture(pointerId)
   }
   moved = true
@@ -121,7 +125,6 @@ defineExpose({ close: () => group.close(props.id) })
       @pointermove="onPointerMove"
       @pointerup="finish"
       @pointercancel="onPointerCancel"
-      @lostpointercapture="onPointerCancel"
     >
       <slot />
     </div>
