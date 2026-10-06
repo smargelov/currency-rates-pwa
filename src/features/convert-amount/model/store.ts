@@ -50,20 +50,15 @@ export const useConverterStore = defineStore('converter', () => {
    * the conversions, so the list keeps showing meaningful amounts.
    */
   const focused = ref(true)
-  /**
-   * After focusing a row that already shows a converted amount, the first
-   * digit typed replaces that amount instead of appending to it. Operators
-   * keep the amount so "amount + 20" keeps working.
-   */
-  const fresh = ref(false)
 
   /** Numeric value of the expression typed so far (null when invalid). */
   const activeValue = computed(() => evaluatePartial(expression.value))
 
   /**
    * Focuses a row, seeding the expression with the value currently shown in
-   * it — rounded to the 2 decimals the row displays, so the user keeps editing
-   * exactly what they saw.
+   * it — rounded to the 2 decimals the row displays. The seed is ordinary
+   * input from then on: backspace trims it, digits and operators extend it,
+   * so a converted result can be adjusted in place.
    */
   function focus(code: CurrencyCode, shownAmount: number | null): void {
     focused.value = true
@@ -71,7 +66,6 @@ export const useConverterStore = defineStore('converter', () => {
     activeCode.value = code
     const seed = shownAmount === null ? 0 : roundAmount(shownAmount)
     expression.value = seed === 0 ? '' : numberToExpression(seed, AMOUNT_FRACTION_DIGITS)
-    fresh.value = expression.value !== ''
   }
 
   /** Leaves edit mode (keypad collapses); the typed value stays in place. */
@@ -84,29 +78,21 @@ export const useConverterStore = defineStore('converter', () => {
     switch (key) {
       case 'clear':
         expression.value = ''
-        fresh.value = false
         return
       case 'backspace':
-        expression.value = fresh.value ? '' : backspace(expression.value)
-        fresh.value = false
+        expression.value = backspace(expression.value)
         return
       case '=':
         expression.value = collapse(expression.value, AMOUNT_FRACTION_DIGITS)
         if (expression.value === '0') expression.value = ''
-        fresh.value = expression.value !== ''
         return
       case '.':
-        expression.value = fresh.value ? '0.' : appendDot(expression.value)
-        fresh.value = false
+        expression.value = appendDot(expression.value)
         return
       default:
-        if (isOperator(key)) {
-          expression.value = appendOperator(expression.value, key)
-          fresh.value = false
-          return
-        }
-        expression.value = fresh.value ? appendDigit('', key) : appendDigit(expression.value, key)
-        fresh.value = false
+        expression.value = isOperator(key)
+          ? appendOperator(expression.value, key)
+          : appendDigit(expression.value, key)
     }
   }
 
@@ -114,7 +100,6 @@ export const useConverterStore = defineStore('converter', () => {
   function reset(): void {
     activeCode.value = settings.baseCode
     expression.value = ''
-    fresh.value = false
     focused.value = true
   }
 
@@ -126,7 +111,6 @@ export const useConverterStore = defineStore('converter', () => {
   return {
     activeCode,
     expression,
-    fresh,
     focused,
     activeValue,
     focus,

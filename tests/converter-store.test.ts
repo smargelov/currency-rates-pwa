@@ -9,15 +9,25 @@ describe('useConverterStore', () => {
     const store = useConverterStore()
     store.focus('rub', 15526.534259)
     expect(store.expression).toBe('15526.53')
-    expect(store.fresh).toBe(true)
     expect(store.activeValue).toBe(15526.53)
+  })
+
+  it('lets the seeded amount be edited in place', () => {
+    const store = useConverterStore()
+    store.focus('rub', 16343.72)
+    store.press('backspace')
+    expect(store.expression).toBe('16343.7')
+    store.press('5')
+    expect(store.expression).toBe('16343.75')
+    store.press('+')
+    store.press('1')
+    expect(store.activeValue).toBe(16344.75)
   })
 
   it('treats a shown amount that rounds to zero as empty input', () => {
     const store = useConverterStore()
     store.focus('rub', 0.004)
     expect(store.expression).toBe('')
-    expect(store.fresh).toBe(false)
   })
 
   it('collapses "=" to at most 2 decimals', () => {
